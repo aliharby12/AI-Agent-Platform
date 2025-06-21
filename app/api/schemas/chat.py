@@ -25,3 +25,7 @@ class MessageResponse(BaseModel):
 
 class MessageResponseWithAgent(MessageResponse):
     agent_name: str
+
+class VoiceResponse(BaseModel):
+    message: MessageResponse
+    audio_url: str
