@@ -22,3 +22,6 @@ class MessageResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+class MessageResponseWithAgent(MessageResponse):
+    agent_name: str
