@@ -1,15 +1,14 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.models import Agent
 from app.api.schemas import AgentCreate, AgentUpdate, AgentResponse
 from app.api.dependencies import get_db_session
 from sqlalchemy.future import select
 from typing import List
-from fastapi import HTTPException
 
-router = APIRouter()
+router = APIRouter(prefix="/agents", tags=["Agents"])
 
-@router.post("/agents", response_model=AgentResponse)
+@router.post("/", response_model=AgentResponse)
 async def create_agent(agent: AgentCreate, db: AsyncSession = Depends(get_db_session)):
     """
     Create a new agent in the database.
@@ -30,7 +29,7 @@ async def create_agent(agent: AgentCreate, db: AsyncSession = Depends(get_db_ses
     await db.refresh(db_agent)
     return db_agent
 
-@router.get("/agents", response_model=List[AgentResponse])
+@router.get("/", response_model=List[AgentResponse])
 async def list_agents(db: AsyncSession = Depends(get_db_session)):
     """
     Retrieve all agents from the database.
@@ -47,7 +46,7 @@ async def list_agents(db: AsyncSession = Depends(get_db_session)):
     result = await db.execute(select(Agent))
     return result.scalars().all()
 
-@router.get("/agents/{agent_id}", response_model=AgentResponse)
+@router.get("/{agent_id}", response_model=AgentResponse)
 async def get_agent(agent_id: int, db: AsyncSession = Depends(get_db_session)):
     """
     Retrieve a specific agent by its ID.
@@ -68,7 +67,7 @@ async def get_agent(agent_id: int, db: AsyncSession = Depends(get_db_session)):
         raise HTTPException(status_code=404, detail="Agent not found")
     return agent
 
-@router.patch("/agents/{agent_id}", response_model=AgentResponse)
+@router.patch("/{agent_id}", response_model=AgentResponse)
 async def update_agent(agent_id: int, agent: AgentUpdate, db: AsyncSession = Depends(get_db_session)):
     """
     Update an existing agent's information.
@@ -98,7 +97,7 @@ async def update_agent(agent_id: int, agent: AgentUpdate, db: AsyncSession = Dep
     await db.refresh(db_agent)
     return db_agent
 
-@router.delete("/agents/{agent_id}", response_model=AgentResponse)
+@router.delete("/{agent_id}", response_model=AgentResponse)
 async def delete_agent(agent_id: int, db: AsyncSession = Depends(get_db_session)):
     """
     Delete an agent from the database.
