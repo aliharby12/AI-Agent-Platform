@@ -1,4 +1,5 @@
-from app.api.schemas.chat import MessageCreate, MessageResponseWithAgent
+from typing import List
+from app.api.schemas.chat import MessageCreate, MessageResponse, MessageResponseWithAgent
 from app.services.openai_service import generate_chat_response
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -83,3 +84,29 @@ async def send_message(
         "created_at": agent_message.created_at,
         "agent_name": agent.name
     }
+
+
+@router.get("/{session_id}/messages", response_model=List[MessageResponse])
+async def get_messages(session_id: int, db: AsyncSession = Depends(get_db_session)):
+    """
+    Retrieve all messages from a chat session.
+    Args:
+        session_id (int): The ID of the chat session
+        db (AsyncSession): Database session dependency
+    Returns:
+        list[MessageResponseWithAgent]: List of messages in the session with agent details
+    Raises:
+        HTTPException: If the session does not exist or if there's an error during database operations
+    """
+    
+
+    result = await db.execute(select(ChatSession).filter(ChatSession.id == session_id))
+    if not result.scalars().first():
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    # Retrieve messages for the session
+    result = await db.execute(
+        select(Message).filter(Message.session_id == session_id).order_by(Message.created_at)
+    )
+    messages = result.scalars().all()
+    return messages
