@@ -5,10 +5,17 @@ from app.api.routers.session_routes import router as session_router
 from app.api.routers.auth_routes import router as auth_router
 from app.utils.database import init_db
 from fastapi.staticfiles import StaticFiles
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()  # Startup logic
+    yield
 
 app = FastAPI(
     title="AI Agent Platform", 
     description="Backend for AI Agent Platform with text and voice interaction",
+    lifespan=lifespan,
     openapi_tags=[
         {
             "name": "Authentication",
@@ -40,10 +47,6 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(agent_router)
 app.include_router(session_router)
 app.include_router(auth_router)
-
-@app.on_event("startup")
-async def startup_event():
-    await init_db()
 
 @app.get("/")
 async def root():

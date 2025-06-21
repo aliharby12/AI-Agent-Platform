@@ -6,7 +6,7 @@ from app.models.user import User
 from openai import AsyncOpenAI
 from sqlalchemy.future import select
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
@@ -20,8 +20,6 @@ security_scheme = HTTPBearer(
     scheme_name="JWT Bearer",
     description="Enter your JWT token in the format: Bearer <token>"
 )
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = os.getenv("JWT_ALGORITHM")
@@ -40,10 +38,12 @@ async def get_openai_client():
         await client.close()
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
 
 def create_access_token(data: dict, expires_delta: timedelta) -> str:
     to_encode = data.copy()

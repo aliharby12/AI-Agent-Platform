@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from .base import Base
 
 class Agent(Base):
@@ -9,5 +9,5 @@ class Agent(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     prompt = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     sessions = relationship("ChatSession", back_populates="agent", cascade="all, delete-orphan")
