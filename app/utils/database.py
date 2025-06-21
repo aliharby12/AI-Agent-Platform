@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
+from app.models.models import Base
 
 DATABASE_URL = "sqlite+aiosqlite:///ai_agent_platform.db"
 
@@ -7,8 +8,7 @@ engine = create_async_engine(DATABASE_URL, echo=True)
 
 async def init_db():
     async with engine.begin() as conn:
-        # Placeholder for metadata creation
-        pass
+        await conn.run_sync(Base.metadata.create_all)
 
 async def get_db():
     async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
