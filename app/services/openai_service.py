@@ -1,5 +1,6 @@
 from openai import AsyncOpenAI
-from app.models.models import Agent, ChatSession
+from app.models.agent import Agent
+from app.models.chat import ChatSession
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 import aiofiles

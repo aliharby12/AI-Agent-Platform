@@ -1,21 +1,29 @@
+from app.models.user import User
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.models import Agent
+from app.models.agent import Agent
 from app.api.schemas import AgentCreate, AgentUpdate, AgentResponse
-from app.api.dependencies import get_db_session
+from app.api.dependencies import get_current_user, get_db_session, security_scheme
 from sqlalchemy.future import select
 from typing import List
 
 router = APIRouter(prefix="/agents", tags=["Agents"])
 
 @router.post("/", response_model=AgentResponse)
-async def create_agent(agent: AgentCreate, db: AsyncSession = Depends(get_db_session)):
+async def create_agent(
+    agent: AgentCreate, 
+    db: AsyncSession = Depends(get_db_session), 
+    current_user: User = Depends(get_current_user),
+    token: str = Depends(security_scheme)
+):
     """
     Create a new agent in the database.
     
     Args:
         agent (AgentCreate): The agent data containing name and prompt
         db (AsyncSession): Database session dependency
+        current_user (User): Current authenticated user
+        token (str): JWT Bearer token
         
     Returns:
         AgentResponse: The created agent with its ID and other details
@@ -30,12 +38,18 @@ async def create_agent(agent: AgentCreate, db: AsyncSession = Depends(get_db_ses
     return db_agent
 
 @router.get("/", response_model=List[AgentResponse])
-async def list_agents(db: AsyncSession = Depends(get_db_session)):
+async def list_agents(
+    db: AsyncSession = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+    token: str = Depends(security_scheme)
+):
     """
     Retrieve all agents from the database.
     
     Args:
         db (AsyncSession): Database session dependency
+        current_user (User): Current authenticated user
+        token (str): JWT Bearer token
         
     Returns:
         List[AgentResponse]: List of all agents in the database
@@ -47,13 +61,20 @@ async def list_agents(db: AsyncSession = Depends(get_db_session)):
     return result.scalars().all()
 
 @router.get("/{agent_id}", response_model=AgentResponse)
-async def get_agent(agent_id: int, db: AsyncSession = Depends(get_db_session)):
+async def get_agent(
+    agent_id: int, 
+    db: AsyncSession = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+    token: str = Depends(security_scheme)
+):
     """
     Retrieve a specific agent by its ID.
     
     Args:
         agent_id (int): The unique identifier of the agent
         db (AsyncSession): Database session dependency
+        current_user (User): Current authenticated user
+        token (str): JWT Bearer token
         
     Returns:
         AgentResponse: The agent with the specified ID
@@ -68,7 +89,13 @@ async def get_agent(agent_id: int, db: AsyncSession = Depends(get_db_session)):
     return agent
 
 @router.patch("/{agent_id}", response_model=AgentResponse)
-async def update_agent(agent_id: int, agent: AgentUpdate, db: AsyncSession = Depends(get_db_session)):
+async def update_agent(
+    agent_id: int, 
+    agent: AgentUpdate, 
+    db: AsyncSession = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+    token: str = Depends(security_scheme)
+):
     """
     Update an existing agent's information.
     
@@ -76,6 +103,8 @@ async def update_agent(agent_id: int, agent: AgentUpdate, db: AsyncSession = Dep
         agent_id (int): The unique identifier of the agent to update
         agent (AgentUpdate): The updated agent data (name and/or prompt)
         db (AsyncSession): Database session dependency
+        current_user (User): Current authenticated user
+        token (str): JWT Bearer token
         
     Returns:
         AgentResponse: The updated agent with its current information
@@ -98,13 +127,20 @@ async def update_agent(agent_id: int, agent: AgentUpdate, db: AsyncSession = Dep
     return db_agent
 
 @router.delete("/{agent_id}", response_model=AgentResponse)
-async def delete_agent(agent_id: int, db: AsyncSession = Depends(get_db_session)):
+async def delete_agent(
+    agent_id: int, 
+    db: AsyncSession = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+    token: str = Depends(security_scheme)
+):
     """
     Delete an agent from the database.
     
     Args:
         agent_id (int): The unique identifier of the agent to delete
         db (AsyncSession): Database session dependency
+        current_user (User): Current authenticated user
+        token (str): JWT Bearer token
         
     Returns:
         AgentResponse: The deleted agent information (before deletion)

@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
-from app.models.models import Base
+from app.models.base import Base
+import app.models
 
 DATABASE_URL = "sqlite+aiosqlite:///ai_agent_platform.db"
 

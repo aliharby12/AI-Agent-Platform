@@ -3,9 +3,11 @@ from app.api.schemas.chat import MessageCreate, MessageResponse, MessageResponse
 from app.services.openai_service import generate_chat_response, generate_voice_response, transcribe_audio
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.models import Agent, ChatSession, Message
+from app.models.agent import Agent
+from app.models.chat import ChatSession, Message
+from app.models.user import User
 from app.api.schemas import ChatSessionCreate, ChatSessionResponse
-from app.api.dependencies import get_db_session, get_openai_client
+from app.api.dependencies import get_db_session, get_openai_client, get_current_user, security_scheme
 from sqlalchemy.future import select
 from openai import AsyncOpenAI
 import aiofiles
@@ -18,12 +20,19 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/sessions", tags=["Sessions"])
 
 @router.post("/", response_model=ChatSessionResponse)
-async def create_session(session: ChatSessionCreate, db: AsyncSession = Depends(get_db_session)):
+async def create_session(
+    session: ChatSessionCreate, 
+    db: AsyncSession = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+    token: str = Depends(security_scheme)
+):
     """
     Create a new chat session for an agent.
     Args:
         session (ChatSessionCreate): The session data containing agent_id
         db (AsyncSession): Database session dependency
+        current_user (User): Current authenticated user
+        token (str): JWT Bearer token
     Returns:
         ChatSessionResponse: The created chat session with its ID and other details
     Raises:
@@ -51,7 +60,9 @@ async def send_message(
     session_id: int,
     message: MessageCreate,
     db: AsyncSession = Depends(get_db_session),
-    client: AsyncOpenAI = Depends(get_openai_client)
+    client: AsyncOpenAI = Depends(get_openai_client),
+    current_user: User = Depends(get_current_user),
+    token: str = Depends(security_scheme)
 ):
     """
     Send a message to a chat session and receive a response from the agent.
@@ -60,6 +71,8 @@ async def send_message(
         message (MessageCreate): The message to send
         db (AsyncSession): Database session dependency
         client (AsyncOpenAI): OpenAI client dependency
+        current_user (User): Current authenticated user
+        token (str): JWT Bearer token
     Returns:
         MessageResponseWithAgent: The response message from the agent, including agent details
     Raises:
@@ -106,12 +119,19 @@ async def send_message(
 
 
 @router.get("/{session_id}/messages", response_model=List[MessageResponse])
-async def get_messages(session_id: int, db: AsyncSession = Depends(get_db_session)):
+async def get_messages(
+    session_id: int, 
+    db: AsyncSession = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+    token: str = Depends(security_scheme)
+):
     """
     Retrieve all messages from a chat session.
     Args:
         session_id (int): The ID of the chat session
         db (AsyncSession): Database session dependency
+        current_user (User): Current authenticated user
+        token (str): JWT Bearer token
     Returns:
         list[MessageResponseWithAgent]: List of messages in the session with agent details
     Raises:
@@ -140,7 +160,9 @@ async def send_voice_message(
     session_id: int,
     audio: UploadFile = File(...),
     db: AsyncSession = Depends(get_db_session),
-    client: AsyncOpenAI = Depends(get_openai_client)
+    client: AsyncOpenAI = Depends(get_openai_client),
+    current_user: User = Depends(get_current_user),
+    token: str = Depends(security_scheme)
 ):
     """
     Send a voice message to a chat session and receive a response from the agent.
@@ -149,6 +171,8 @@ async def send_voice_message(
         audio (UploadFile): The audio file to transcribe
         db (AsyncSession): Database session dependency
         client (AsyncOpenAI): OpenAI client dependency
+        current_user (User): Current authenticated user
+        token (str): JWT Bearer token
     Returns:
         VoiceResponse: The response message and audio URL from the agent
     Raises:
@@ -213,12 +237,19 @@ async def send_voice_message(
     
 
 @router.delete("/{session_id}", status_code=204)
-async def delete_session(session_id: int, db: AsyncSession = Depends(get_db_session)):
+async def delete_session(
+    session_id: int, 
+    db: AsyncSession = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+    token: str = Depends(security_scheme)
+):
     """
     Delete a chat session and all associated messages.
     Args:
         session_id (int): The ID of the chat session to delete
         db (AsyncSession): Database session dependency
+        current_user (User): Current authenticated user
+        token (str): JWT Bearer token
     Returns:
         None: No content response on successful deletion
     Raises:
@@ -235,12 +266,19 @@ async def delete_session(session_id: int, db: AsyncSession = Depends(get_db_sess
     await db.commit()
 
 @router.get("/", response_model=List[ChatSessionResponse])
-async def list_sessions(agent_id: Optional[int] = None, db: AsyncSession = Depends(get_db_session)):
+async def list_sessions(
+    agent_id: Optional[int] = None, 
+    db: AsyncSession = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+    token: str = Depends(security_scheme)
+):
     """
     List all chat sessions, optionally filtered by agent_id.
     Args:
         agent_id (Optional[int]): The ID of the agent to filter sessions by
         db (AsyncSession): Database session dependency
+        current_user (User): Current authenticated user
+        token (str): JWT Bearer token
     Returns:
         List[ChatSessionResponse]: List of chat sessions, optionally filtered by agent_id
     Raises:
