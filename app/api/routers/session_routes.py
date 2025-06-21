@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from app.api.schemas.chat import MessageCreate, MessageResponse, MessageResponseWithAgent, VoiceResponse
 from app.services.openai_service import generate_chat_response, generate_voice_response, transcribe_audio
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
@@ -214,6 +214,16 @@ async def send_voice_message(
 
 @router.delete("/{session_id}", status_code=204)
 async def delete_session(session_id: int, db: AsyncSession = Depends(get_db_session)):
+    """
+    Delete a chat session and all associated messages.
+    Args:
+        session_id (int): The ID of the chat session to delete
+        db (AsyncSession): Database session dependency
+    Returns:
+        None: No content response on successful deletion
+    Raises:
+        HTTPException: If the session does not exist or if there's an error during deletion
+    """
     # Verify session exists
     result = await db.execute(select(ChatSession).filter(ChatSession.id == session_id))
     db_session = result.scalars().first()
@@ -223,3 +233,23 @@ async def delete_session(session_id: int, db: AsyncSession = Depends(get_db_sess
     # Delete session (messages are deleted via cascade)
     await db.delete(db_session)
     await db.commit()
+
+@router.get("/", response_model=List[ChatSessionResponse])
+async def list_sessions(agent_id: Optional[int] = None, db: AsyncSession = Depends(get_db_session)):
+    """
+    List all chat sessions, optionally filtered by agent_id.
+    Args:
+        agent_id (Optional[int]): The ID of the agent to filter sessions by
+        db (AsyncSession): Database session dependency
+    Returns:
+        List[ChatSessionResponse]: List of chat sessions, optionally filtered by agent_id
+    Raises:
+        HTTPException: If there's an error during database operations
+    """
+    # Retrieve sessions, optionally filtered by agent_id
+    query = select(ChatSession)
+    if agent_id is not None:
+        query = query.filter(ChatSession.agent_id == agent_id)
+    result = await db.execute(query.order_by(ChatSession.created_at))
+    sessions = result.scalars().all()
+    return sessions
