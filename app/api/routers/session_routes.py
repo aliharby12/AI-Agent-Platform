@@ -210,3 +210,16 @@ async def send_voice_message(
         await db.rollback()
         logger.error(f"Error processing voice message for session {session_id}: {e}")
         raise HTTPException(status_code=400, detail="Failed to process voice message. Please try again.")
+    
+
+@router.delete("/{session_id}", status_code=204)
+async def delete_session(session_id: int, db: AsyncSession = Depends(get_db_session)):
+    # Verify session exists
+    result = await db.execute(select(ChatSession).filter(ChatSession.id == session_id))
+    db_session = result.scalars().first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    # Delete session (messages are deleted via cascade)
+    await db.delete(db_session)
+    await db.commit()
