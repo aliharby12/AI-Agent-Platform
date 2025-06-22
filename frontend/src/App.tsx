@@ -79,7 +79,6 @@ const AppContent: React.FC = () => {
             onSelectSession={setSelectedSession}
             agents={agents}
           />
-          <button className="new-chat-btn">New Chat</button>
         </header>
         {/* Chat Window */}
         <section className="chat-window-section">

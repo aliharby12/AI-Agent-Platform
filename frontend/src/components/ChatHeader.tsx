@@ -11,6 +11,7 @@ interface ChatHeaderProps {
 const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedAgent, selectedSession, onSelectSession, agents }) => {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [loading, setLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     if (selectedAgent) {
@@ -23,6 +24,19 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedAgent, selectedSession,
     }
   }, [selectedAgent]);
 
+  const handleNewChat = async () => {
+    if (!selectedAgent) return;
+    setCreating(true);
+    try {
+      const newSession = await sessionApi.createSession(selectedAgent.id);
+      const updatedSessions = await sessionApi.listSessions(selectedAgent.id);
+      setSessions(updatedSessions);
+      onSelectSession(newSession);
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const noAgents = agents.length === 0;
 
   return (
@@ -32,7 +46,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedAgent, selectedSession,
       </div>
       <div style={{ display: 'flex', alignItems: 'center' }}>
         {noAgents ? (
-          <span style={{ color: '#e0e0e0' }}>No Agents</span>
+          <span style={{ color: '#e0e0e0' }}>No Sessions</span>
         ) : selectedAgent ? (
           loading ? (
             <span>Loading sessions...</span>
@@ -48,7 +62,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedAgent, selectedSession,
               <option value="">Select session</option>
               {sessions.map(session => (
                 <option key={session.id} value={session.id}>
-                  Session #{session.id} ({new Date(session.created_at).toLocaleString()})
+                  Session #{sessions.indexOf(session) + 1} ({new Date(session.created_at).toLocaleString()})
                 </option>
               ))}
             </select>
@@ -56,6 +70,13 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedAgent, selectedSession,
         ) : (
           <span style={{ color: '#e0e0e0' }}>No agent selected</span>
         )}
+        <button
+          className="new-chat-btn"
+          onClick={handleNewChat}
+          disabled={!selectedAgent || creating}
+        >
+          {creating ? 'Creating...' : 'New Chat'}
+        </button>
       </div>
     </div>
   );

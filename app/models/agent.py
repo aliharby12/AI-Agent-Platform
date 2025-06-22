@@ -10,4 +10,4 @@ class Agent(Base):
     name = Column(String, nullable=False)
     prompt = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    sessions = relationship("ChatSession", back_populates="agent", cascade="all, delete-orphan", passive_deletes=True)
+    sessions = relationship("ChatSession", back_populates="agent", cascade="all, delete-orphan")
