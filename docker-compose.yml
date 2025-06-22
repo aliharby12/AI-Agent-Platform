@@ -42,3 +42,7 @@ services:
           memory: 512M
         reservations:
           memory: 256M
+  
+  test:
+    build: .
+    command: pytest -v
