@@ -14,11 +14,15 @@ from jose import jwt
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+# Try to load .env file, but don't fail if it doesn't exist
+try:
+    load_dotenv()
+except OSError:
+    pass  # Ignore the error if .env file is not found
 
 DATABASE_URL = "sqlite+aiosqlite:///:memory:"
-SECRET_KEY = os.getenv("JWT_SECRET_KEY")
-ALGORITHM = os.getenv("JWT_ALGORITHM")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "test-secret-key-for-testing-only")
+ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 
 @pytest_asyncio.fixture
 async def db_session():

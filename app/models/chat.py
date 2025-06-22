@@ -8,7 +8,7 @@ class ChatSession(Base):
     __tablename__ = "chat_sessions"
     id = Column(Integer, primary_key=True)
     agent_id = Column(Integer, ForeignKey("agents.id"))
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     agent = relationship("Agent", back_populates="sessions")
     messages = relationship("Message", back_populates="session", cascade="all, delete-orphan")
 
@@ -19,5 +19,5 @@ class Message(Base):
     session_id = Column(Integer, ForeignKey("chat_sessions.id"))
     content = Column(String, nullable=False)
     is_user = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     session = relationship("ChatSession", back_populates="messages")

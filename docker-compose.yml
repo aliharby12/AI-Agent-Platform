@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  ai-agent-platform:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      # Persist uploaded files and generated audio
+      - ./uploads:/app/uploads
+      - ./static:/app/static
+    restart: unless-stopped
+    depends_on:
+      - db
+    # Optional: Add resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  db:
+    image: postgres:15-alpine
+    env_file:
+      - .env
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-ai_agent_platform}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    # Optional: Add resource limits for database
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
