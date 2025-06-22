@@ -6,9 +6,25 @@ import ChatHeader from './components/ChatHeader';
 import ChatWindow from './components/ChatWindow';
 import MessageInput from './components/MessageInput';
 import './App.css';
+import { Agent, ChatSession } from './services/api';
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, loading, logout, user } = useAuth();
+  const [agents, setAgents] = React.useState<Agent[]>([]);
+  const [selectedAgent, setSelectedAgent] = React.useState<Agent | null>(null);
+  const [selectedSession, setSelectedSession] = React.useState<ChatSession | null>(null);
+
+  // Handler to update agent list and selected agent
+  const handleAgentListUpdate = (newAgents: Agent[]) => {
+    setAgents(newAgents);
+    if (newAgents.length === 0) {
+      setSelectedAgent(null);
+      setSelectedSession(null);
+    } else if (!selectedAgent || !newAgents.some(a => a.id === selectedAgent.id)) {
+      setSelectedAgent(newAgents[0]);
+      setSelectedSession(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -23,9 +39,9 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
+    <div className="app-layout">
       {/* Sidebar: Agent List */}
-      <aside style={{ width: 300, background: '#f4f4f4', padding: 16 }}>
+      <aside className="sidebar">
         <div style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <span style={{ fontWeight: 'bold' }}>Welcome, {user?.username}!</span>
@@ -45,22 +61,33 @@ const AppContent: React.FC = () => {
             </button>
           </div>
         </div>
-        <AgentList />
+        <AgentList
+          onSelectAgent={agent => {
+            setSelectedAgent(agent);
+            setSelectedSession(null);
+          }}
+          onAgentListUpdate={handleAgentListUpdate}
+        />
       </aside>
       {/* Main Chat Area */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f9f9f9' }}>
+      <main className="chat-main">
         {/* Chat Header */}
-        <header style={{ background: '#2d2dff', color: 'white', padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <ChatHeader />
-          <button style={{ background: '#fff', color: '#2d2dff', border: 'none', borderRadius: 4, padding: '8px 16px', cursor: 'pointer' }}>New Chat</button>
+        <header className="chat-header">
+          <ChatHeader
+            selectedAgent={selectedAgent}
+            selectedSession={selectedSession}
+            onSelectSession={setSelectedSession}
+            agents={agents}
+          />
+          <button className="new-chat-btn">New Chat</button>
         </header>
         {/* Chat Window */}
-        <section style={{ flex: 1, padding: 24, overflowY: 'auto' }}>
-          <ChatWindow />
+        <section className="chat-window-section">
+          <ChatWindow session={selectedSession} />
         </section>
         {/* Message Input */}
-        <footer style={{ padding: 16, background: '#fff', display: 'flex', alignItems: 'center' }}>
-          <MessageInput />
+        <footer className="chat-footer">
+          <MessageInput sessionId={selectedSession?.id ?? null} />
         </footer>
       </main>
     </div>

@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { agentApi, Agent } from '../services/api';
 
-const AgentList: React.FC = () => {
+interface AgentListProps {
+  onSelectAgent?: (agent: Agent) => void;
+  onAgentListUpdate?: (newAgents: Agent[]) => void;
+}
+
+const AgentList: React.FC<AgentListProps> = ({ onSelectAgent, onAgentListUpdate }) => {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,6 +25,7 @@ const AgentList: React.FC = () => {
       setError(null);
       const data = await agentApi.getAgents();
       setAgents(data);
+      if (onAgentListUpdate) onAgentListUpdate(data);
     } catch (err) {
       setError('Failed to fetch agents. Please check your authentication.');
       console.error('Error fetching agents:', err);
@@ -158,7 +164,7 @@ const AgentList: React.FC = () => {
       ) : (
         <ul className="agents-list">
           {agents.map((agent) => (
-            <li key={agent.id} className="agent-item">
+            <li key={agent.id} className="agent-item" onClick={() => onSelectAgent && onSelectAgent(agent)} style={{ cursor: 'pointer' }}>
               {editingAgent?.id === agent.id ? (
                 // Edit Form
                 <form onSubmit={handleUpdateAgent} className="agent-form">

@@ -1,6 +1,11 @@
 import React from 'react';
+import { ChatSession } from '../services/api';
 
-const ChatWindow: React.FC = () => {
+interface ChatWindowProps {
+  session: ChatSession | null;
+}
+
+const ChatWindow: React.FC<ChatWindowProps> = ({ session }) => {
   return (
     <div>
       {/* Example chat bubbles */}

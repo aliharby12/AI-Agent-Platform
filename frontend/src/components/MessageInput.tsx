@@ -1,11 +1,15 @@
 import React from 'react';
 
-const MessageInput: React.FC = () => {
+interface MessageInputProps {
+  sessionId: number | null;
+}
+
+const MessageInput: React.FC<MessageInputProps> = ({ sessionId }) => {
   return (
-    <div style={{ display: 'flex', alignItems: 'center' }}>
-      <input type="text" placeholder="Type your message or use voice..." style={{ flex: 1, padding: 12, borderRadius: 4, border: '1px solid #ccc', marginRight: 8 }} />
-      <button style={{ background: '#2d2dff', color: '#fff', border: 'none', borderRadius: 4, padding: '8px 16px', marginRight: 8 }}>Send</button>
-      <button style={{ background: '#4caf50', color: '#fff', border: 'none', borderRadius: 4, padding: '8px 16px' }}>Record</button>
+    <div className="chat-input-row">
+      <input type="text" placeholder={sessionId ? 'Type your message or use voice...' : 'Select a session to chat...'} style={{ flex: 1, borderRadius: 4, border: '1px solid #ccc', padding: 12 }} disabled={!sessionId} />
+      <button style={{ background: '#2d2dff', color: '#fff', border: 'none', borderRadius: 4, padding: '8px 16px' }} disabled={!sessionId}>Send</button>
+      <button style={{ background: '#4caf50', color: '#fff', border: 'none', borderRadius: 4, padding: '8px 16px' }} disabled={!sessionId}>Record</button>
     </div>
   );
 };

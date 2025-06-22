@@ -149,4 +149,52 @@ export const agentApi = {
   },
 };
 
+// Session types
+export interface ChatSession {
+  id: number;
+  agent_id: number;
+  created_at: string;
+}
+
+export interface Message {
+  id: number;
+  session_id: number;
+  content: string;
+  is_user: boolean;
+  created_at: string;
+}
+
+// Session API functions
+export const sessionApi = {
+  // List all sessions, optionally filtered by agent_id
+  listSessions: async (agentId?: number): Promise<ChatSession[]> => {
+    const params = agentId ? { agent_id: agentId } : undefined;
+    const response = await api.get('/sessions/', { params });
+    return response.data;
+  },
+
+  // Create a new session for an agent
+  createSession: async (agent_id: number): Promise<ChatSession> => {
+    const response = await api.post('/sessions/', { agent_id });
+    return response.data;
+  },
+
+  // Delete a session
+  deleteSession: async (session_id: number): Promise<void> => {
+    await api.delete(`/sessions/${session_id}`);
+  },
+
+  // Send a message to a session
+  sendMessage: async (session_id: number, content: string): Promise<Message> => {
+    const response = await api.post(`/sessions/${session_id}/messages`, { content });
+    return response.data;
+  },
+
+  // Get all messages for a session
+  getMessages: async (session_id: number): Promise<Message[]> => {
+    const response = await api.get(`/sessions/${session_id}/messages`);
+    return response.data;
+  },
+};
+
 export default api; 
