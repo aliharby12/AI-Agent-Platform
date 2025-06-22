@@ -15,5 +15,6 @@ class AgentResponse(BaseModel):
     name: str
     prompt: str
     created_at: datetime
+    user_id: int
 
     model_config = {"from_attributes": True}

@@ -43,7 +43,7 @@ async def test_create_session_nonexistent_agent(client: TestClient, access_token
         headers={"Authorization": f"Bearer {access_token}"}
     )
     assert response.status_code == 404
-    assert response.json() == {"detail": "Agent not found"}
+    assert response.json() == {"detail": "Agent not found or not owned by user"}
 
 @pytest.mark.asyncio
 async def test_create_session_missing_agent_id(client: TestClient, access_token: str):

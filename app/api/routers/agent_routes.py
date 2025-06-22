@@ -31,7 +31,7 @@ async def create_agent(
     Raises:
         HTTPException: If there's an error during database operations
     """
-    db_agent = Agent(name=agent.name, prompt=agent.prompt)
+    db_agent = Agent(name=agent.name, prompt=agent.prompt, user_id=current_user.id)
     db.add(db_agent)
     await db.commit()
     await db.refresh(db_agent)
@@ -57,7 +57,7 @@ async def list_agents(
     Raises:
         HTTPException: If there's an error during database operations
     """
-    result = await db.execute(select(Agent))
+    result = await db.execute(select(Agent).where(Agent.user_id == current_user.id))
     return result.scalars().all()
 
 @router.get("/{agent_id}", response_model=AgentResponse)
@@ -82,7 +82,7 @@ async def get_agent(
     Raises:
         HTTPException: 404 if agent is not found, or other database errors
     """
-    result = await db.execute(select(Agent).where(Agent.id == agent_id))
+    result = await db.execute(select(Agent).where(Agent.id == agent_id, Agent.user_id == current_user.id))
     agent = result.scalar_one_or_none()
     if agent is None:
         raise HTTPException(status_code=404, detail="Agent not found")
@@ -112,7 +112,7 @@ async def update_agent(
     Raises:
         HTTPException: 404 if agent is not found, or other database errors
     """
-    result = await db.execute(select(Agent).where(Agent.id == agent_id))
+    result = await db.execute(select(Agent).where(Agent.id == agent_id, Agent.user_id == current_user.id))
     db_agent = result.scalar_one_or_none()
     if db_agent is None:
         raise HTTPException(status_code=404, detail="Agent not found")
@@ -148,7 +148,7 @@ async def delete_agent(
     Raises:
         HTTPException: 404 if agent is not found, or other database errors
     """
-    result = await db.execute(select(Agent).where(Agent.id == agent_id))
+    result = await db.execute(select(Agent).where(Agent.id == agent_id, Agent.user_id == current_user.id))
     db_agent = result.scalar_one_or_none()
     if db_agent is None:
         raise HTTPException(status_code=404, detail="Agent not found")

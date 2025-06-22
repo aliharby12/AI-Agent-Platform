@@ -39,9 +39,9 @@ async def create_session(
         HTTPException: If the agent does not exist or if there's an error during database operations
     """
     try:
-        result = await db.execute(select(Agent).filter(Agent.id == session.agent_id))
+        result = await db.execute(select(Agent).filter(Agent.id == session.agent_id, Agent.user_id == current_user.id))
         if not result.scalars().first():
-            raise HTTPException(status_code=404, detail="Agent not found")
+            raise HTTPException(status_code=404, detail="Agent not found or not owned by user")
         db_session = ChatSession(agent_id=session.agent_id)
         db.add(db_session)
         await db.commit()
