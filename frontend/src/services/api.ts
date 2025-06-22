@@ -162,6 +162,7 @@ export interface Message {
   content: string;
   is_user: boolean;
   created_at: string;
+  agent_name?: string;
 }
 
 // Session API functions
