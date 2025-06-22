@@ -34,6 +34,16 @@ const AppContent: React.FC = () => {
       setChatLoading(true);
       sessionApi.getMessages(selectedSession.id)
         .then(setMessages)
+        .catch((error: any) => {
+          console.error('Error fetching messages:', error);
+          if (error.response?.status === 400) {
+            alert('Error loading messages. Please try again.');
+          } else if (error.response?.status === 401) {
+            alert('Session expired. Please login again.');
+          } else {
+            alert('Failed to load messages. Please check your connection.');
+          }
+        })
         .finally(() => setChatLoading(false));
     } else {
       setMessages([]);
@@ -50,6 +60,17 @@ const AppContent: React.FC = () => {
         { content, is_user: true, session_id: selectedSession.id, id: Date.now(), created_at: new Date().toISOString() }, 
         response
       ]);
+    } catch (error: any) {
+      console.error('Error sending message:', error);
+      if (error.response?.status === 400) {
+        alert('Invalid message. Please check your input and try again.');
+      } else if (error.response?.status === 401) {
+        alert('Session expired. Please login again.');
+      } else if (error.response?.status === 404) {
+        alert('Session not found. Please create a new chat.');
+      } else {
+        alert('Failed to send message. Please try again.');
+      }
     } finally {
       setChatLoading(false);
     }

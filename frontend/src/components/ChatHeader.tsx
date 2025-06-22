@@ -18,6 +18,16 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedAgent, selectedSession,
       setLoading(true);
       sessionApi.listSessions(selectedAgent.id)
         .then(setSessions)
+        .catch((error: any) => {
+          console.error('Error fetching sessions:', error);
+          if (error.response?.status === 400) {
+            alert('Error loading sessions. Please try again.');
+          } else if (error.response?.status === 401) {
+            alert('Session expired. Please login again.');
+          } else {
+            alert('Failed to load sessions. Please check your connection.');
+          }
+        })
         .finally(() => setLoading(false));
     } else {
       setSessions([]);
@@ -32,6 +42,17 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedAgent, selectedSession,
       const updatedSessions = await sessionApi.listSessions(selectedAgent.id);
       setSessions(updatedSessions);
       onSelectSession(newSession);
+    } catch (error: any) {
+      console.error('Error creating session:', error);
+      if (error.response?.status === 400) {
+        alert('Error creating new chat. Please try again.');
+      } else if (error.response?.status === 401) {
+        alert('Session expired. Please login again.');
+      } else if (error.response?.status === 404) {
+        alert('Agent not found. Please select a different agent.');
+      } else {
+        alert('Failed to create new chat. Please try again.');
+      }
     } finally {
       setCreating(false);
     }
