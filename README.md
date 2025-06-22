@@ -133,7 +133,6 @@ The application uses the following environment variables:
 | `JWT_ALGORITHM` | JWT algorithm | No | HS256 |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | JWT access token expiry | No | 30 |
 | `REFRESH_TOKEN_EXPIRE_DAYS` | JWT refresh token expiry | No | 7 |
-| `DATABASE_URL` | Database connection string | Yes | - |
 | `DB_HOST` | Database host | Yes | db (Docker) / localhost |
 | `DB_PORT` | Database port | No | 5432 |
 | `DB_NAME` | Database name | No | ai_agent_platform |
