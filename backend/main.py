@@ -7,11 +7,25 @@ from backend.utils.database import init_db
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import os
+import subprocess
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()  # Startup logic
     yield
+
+def run_migrations():
+    """Run migrations on startup"""
+    try:
+        print("Running migrations...")
+        subprocess.run(["python", "migrate.py"], check=True)
+        print("Migrations completed successfully!")
+    except subprocess.CalledProcessError as e:
+        print(f"Migration failed: {e}")
+        raise
+
+# Run migrations on startup
+run_migrations()
 
 app = FastAPI(
     title="AI Agent Platform", 

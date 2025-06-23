@@ -13,3 +13,4 @@ pytest-asyncio==0.21.1
 httpx==0.25.2
 pydantic==2.5.0
 asyncpg>=0.28.0
+alembic

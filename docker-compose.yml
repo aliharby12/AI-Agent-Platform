@@ -73,6 +73,19 @@ services:
     command: pytest -v
     networks:
       - app-network
+  migrate:
+    build: .
+    container_name: fastapi_migrate
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    command: python migrate.py
+    profiles:
+      - tools
 
   # nginx:  # Optional: Reverse proxy for production
   #   image: nginx:alpine
