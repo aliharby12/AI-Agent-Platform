@@ -18,9 +18,11 @@ RUN apt-get update && apt-get install -y \
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN mkdir -p /backend/static /backend/uploads
+# Create directories and set ownership
+RUN mkdir -p /backend/static/ /backend/uploads/ \
+    && chown -R appuser:appuser /backend
+
 COPY --chown=appuser:appuser backend/ ./backend
-RUN chmod 755 backend/uploads backend/static backend/start.sh
 
 USER appuser
 EXPOSE 8000
