@@ -54,13 +54,52 @@ const AppContent: React.FC = () => {
   const handleSendMessage = async (content: string) => {
     if (!selectedSession) return;
     setChatLoading(true);
+    // Add user message and AI placeholder immediately
+    const userMsg = {
+      content,
+      is_user: true,
+      session_id: selectedSession.id,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+    };
+    const aiPlaceholder = {
+      content: 'generating response...',
+      is_user: false,
+      session_id: selectedSession.id,
+      id: Date.now() + 1,
+      created_at: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, userMsg, aiPlaceholder]);
     try {
       const response = await sessionApi.sendMessage(selectedSession.id, content);
-      setMessages(prev => [...prev, 
-        { content, is_user: true, session_id: selectedSession.id, id: Date.now(), created_at: new Date().toISOString() }, 
-        response
-      ]);
+      setMessages(prev => {
+        // Replace the last AI placeholder with the real response
+        const idx = prev.findIndex(
+          m => m.session_id === selectedSession.id && m.content === 'generating response...'
+        );
+        if (idx !== -1) {
+          const newMsgs = [...prev];
+          newMsgs[idx] = response;
+          return newMsgs;
+        }
+        return prev;
+      });
     } catch (error: any) {
+      setMessages(prev => {
+        // Replace the placeholder with an error message
+        const idx = prev.findIndex(
+          m => m.session_id === selectedSession.id && m.content === 'generating response...'
+        );
+        if (idx !== -1) {
+          const newMsgs = [...prev];
+          newMsgs[idx] = {
+            ...aiPlaceholder,
+            content: 'Failed to get response. Please try again.',
+          };
+          return newMsgs;
+        }
+        return prev;
+      });
       console.error('Error sending message:', error);
       if (error.response?.status === 400) {
         alert('Invalid message. Please check your input and try again.');
@@ -70,6 +109,35 @@ const AppContent: React.FC = () => {
         alert('Session not found. Please create a new chat.');
       } else {
         alert('Failed to send message. Please try again.');
+      }
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  // Handle sending a voice message
+  const handleSendVoiceMessage = async (audioBlob: Blob) => {
+    if (!selectedSession) return;
+    setChatLoading(true);
+    try {
+      // Convert Blob to File
+      const extension = 'wav';
+      const audioFile = new File([audioBlob], `voice-message.${extension}`, { type: audioBlob.type });
+      const response = await sessionApi.sendVoiceMessage(selectedSession.id, audioFile, extension);
+      setMessages(prev => [...prev, 
+        { content: '[Voice Message]', is_user: true, session_id: selectedSession.id, id: Date.now(), created_at: new Date().toISOString() }, 
+        response
+      ]);
+    } catch (error: any) {
+      console.error('Error sending voice message:', error);
+      if (error.response?.status === 400) {
+        alert('Invalid audio format. Please try again.');
+      } else if (error.response?.status === 401) {
+        alert('Session expired. Please login again.');
+      } else if (error.response?.status === 404) {
+        alert('Session not found. Please create a new chat.');
+      } else {
+        alert('Failed to send voice message. Please try again.');
       }
     } finally {
       setChatLoading(false);
@@ -141,7 +209,7 @@ const AppContent: React.FC = () => {
         {/* Message Input */}
         <footer className="chat-footer">
           {selectedSession && (
-            <MessageInput sessionId={selectedSession.id} onSend={handleSendMessage} disabled={chatLoading} />
+            <MessageInput sessionId={selectedSession.id} onSend={handleSendMessage} onSendVoice={handleSendVoiceMessage} disabled={chatLoading} />
           )}
         </footer>
       </main>

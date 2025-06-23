@@ -191,6 +191,16 @@ export const sessionApi = {
     return response.data;
   },
 
+  // Send a voice message to a session
+  sendVoiceMessage: async (session_id: number, audioFile: File, extension: string): Promise<Message> => {
+    if (!audioFile || audioFile.size === 0) {
+      throw new Error('No audio file to send');
+    }
+    const formData = new FormData();
+    formData.append('audio', audioFile, audioFile.name);
+    return (await api.post(`/sessions/${session_id}/voice`, formData)).data;
+  },
+
   // Get all messages for a session
   getMessages: async (session_id: number): Promise<Message[]> => {
     const response = await api.get(`/sessions/${session_id}/messages`);
