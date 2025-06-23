@@ -196,9 +196,27 @@ export const sessionApi = {
     if (!audioFile || audioFile.size === 0) {
       throw new Error('No audio file to send');
     }
+    
     const formData = new FormData();
-    formData.append('audio', audioFile, audioFile.name);
-    return (await api.post(`/sessions/${session_id}/voice`, formData)).data;
+    formData.append('audio', audioFile);
+    
+    // Create a custom request config for file upload
+    const config = {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        // Keep the authorization header from the interceptor
+      }
+    };
+    
+    console.log('Sending voice message with FormData:', {
+      sessionId: session_id,
+      fileName: audioFile.name,
+      fileSize: audioFile.size,
+      fileType: audioFile.type
+    });
+    
+    const response = await api.post(`/sessions/${session_id}/voice`, formData, config);
+    return response.data;
   },
 
   // Get all messages for a session
@@ -208,4 +226,4 @@ export const sessionApi = {
   },
 };
 
-export default api; 
+export default api;

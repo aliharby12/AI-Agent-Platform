@@ -115,34 +115,76 @@ const AppContent: React.FC = () => {
     }
   };
 
-  // Handle sending a voice message
-  const handleSendVoiceMessage = async (audioBlob: Blob) => {
-    if (!selectedSession) return;
-    setChatLoading(true);
-    try {
-      // Convert Blob to File
-      const extension = 'wav';
-      const audioFile = new File([audioBlob], `voice-message.${extension}`, { type: audioBlob.type });
-      const response = await sessionApi.sendVoiceMessage(selectedSession.id, audioFile, extension);
-      setMessages(prev => [...prev, 
-        { content: '[Voice Message]', is_user: true, session_id: selectedSession.id, id: Date.now(), created_at: new Date().toISOString() }, 
-        response
-      ]);
-    } catch (error: any) {
-      console.error('Error sending voice message:', error);
-      if (error.response?.status === 400) {
-        alert('Invalid audio format. Please try again.');
-      } else if (error.response?.status === 401) {
-        alert('Session expired. Please login again.');
-      } else if (error.response?.status === 404) {
-        alert('Session not found. Please create a new chat.');
-      } else {
-        alert('Failed to send voice message. Please try again.');
-      }
-    } finally {
-      setChatLoading(false);
+  // Replace the handleSendVoiceMessage function in App.tsx with this improved version:
+
+const handleSendVoiceMessage = async (audioBlob: Blob) => {
+  if (!selectedSession) return;
+  setChatLoading(true);
+  
+  try {
+    console.log('Processing voice message:', {
+      size: audioBlob.size,
+      type: audioBlob.type
+    });
+
+    // Determine file extension based on MIME type
+    let extension = 'webm'; // default
+    let mimeType = audioBlob.type;
+    
+    if (mimeType.includes('wav')) {
+      extension = 'wav';
+    } else if (mimeType.includes('mp3') || mimeType.includes('mpeg')) {
+      extension = 'mp3';
+    } else if (mimeType.includes('ogg')) {
+      extension = 'ogg';
+    } else if (mimeType.includes('webm')) {
+      extension = 'webm';
     }
-  };
+
+    // Create file with proper extension and MIME type
+    const audioFile = new File([audioBlob], `voice-message.${extension}`, { 
+      type: audioBlob.type || 'audio/webm'
+    });
+
+    console.log('Sending audio file:', {
+      name: audioFile.name,
+      size: audioFile.size,
+      type: audioFile.type,
+      extension: extension
+    });
+
+    const response = await sessionApi.sendVoiceMessage(selectedSession.id, audioFile, extension);
+    
+    // Add both user voice message and AI response to the chat
+    setMessages(prev => [...prev, 
+      { 
+        content: '[Voice Message]', 
+        is_user: true, 
+        session_id: selectedSession.id, 
+        id: Date.now(), 
+        created_at: new Date().toISOString() 
+      }, 
+      response
+    ]);
+    
+  } catch (error: any) {
+    console.error('Error sending voice message:', error);
+    console.error('Error details:', error.response?.data);
+    
+    if (error.response?.status === 400) {
+      const errorMessage = error.response?.data?.detail || 'Invalid audio format';
+      alert(`Audio error: ${errorMessage}. Please try again.`);
+    } else if (error.response?.status === 401) {
+      alert('Session expired. Please login again.');
+    } else if (error.response?.status === 404) {
+      alert('Session not found. Please create a new chat.');
+    } else {
+      alert('Failed to send voice message. Please try again.');
+    }
+  } finally {
+    setChatLoading(false);
+  }
+};
 
   if (loading) {
     return (

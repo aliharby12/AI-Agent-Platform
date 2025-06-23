@@ -22,12 +22,47 @@ const MessageInput: React.FC<MessageInputProps> = ({ sessionId, onSend, onSendVo
     }
   };
 
+  // Function to get supported MIME type
+  const getSupportedMimeType = (): string => {
+    const types = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/ogg;codecs=opus',
+      'audio/ogg',
+      'audio/wav',
+      'audio/mp4',
+      'audio/mpeg'
+    ];
+
+    for (const type of types) {
+      if (MediaRecorder.isTypeSupported(type)) {
+        console.log(`Using MIME type: ${type}`);
+        return type;
+      }
+    }
+    
+    console.warn('No supported MIME type found, using default');
+    return 'audio/webm'; // fallback
+  };
+
   const startRecording = async () => {
     if (!sessionId || disabled) return;
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100,
+        }
+      });
+
+      const mimeType = getSupportedMimeType();
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: mimeType,
+        audioBitsPerSecond: 128000,
+      });
+      
       audioChunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
@@ -37,15 +72,52 @@ const MessageInput: React.FC<MessageInputProps> = ({ sessionId, onSend, onSendVo
       };
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        const mimeType = mediaRecorderRef.current?.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+        
+        console.log('Audio blob created:', {
+          size: audioBlob.size,
+          type: audioBlob.type,
+          chunks: audioChunksRef.current.length
+        });
+
         if (onSendVoice && audioBlob.size > 0) {
-          onSendVoice(audioBlob);
+          // Create a File object with proper name and extension
+          const fileExtension = mimeType.includes('webm') ? 'webm' : 
+                               mimeType.includes('ogg') ? 'ogg' : 
+                               mimeType.includes('wav') ? 'wav' : 
+                               mimeType.includes('mp4') ? 'mp4' : 'webm';
+          
+          const audioFile = new File([audioBlob], `recording.${fileExtension}`, {
+            type: mimeType,
+            lastModified: Date.now()
+          });
+          
+          console.log('Sending audio file:', {
+            name: audioFile.name,
+            size: audioFile.size,
+            type: audioFile.type
+          });
+          
+          // Pass the File object to onSendVoice
+          onSendVoice(audioFile);
+        } else {
+          console.error('Audio blob is empty or onSendVoice is not defined');
         }
+        
+        // Clean up the stream
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.onerror = (event) => {
+        console.error('MediaRecorder error:', event);
+        alert('Recording error occurred. Please try again.');
+        setIsRecording(false);
         stream.getTracks().forEach(track => track.stop());
       };
 
       mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start();
+      mediaRecorder.start(1000); // Collect data every second
       setIsRecording(true);
       setRecordingTime(0);
 
@@ -56,7 +128,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ sessionId, onSend, onSendVo
 
     } catch (error) {
       console.error('Error accessing microphone:', error);
-      alert('Unable to access microphone. Please check permissions.');
+      alert('Unable to access microphone. Please check permissions and try again.');
     }
   };
 
@@ -194,4 +266,4 @@ const MessageInput: React.FC<MessageInputProps> = ({ sessionId, onSend, onSendVo
   );
 };
 
-export default MessageInput; 
+export default MessageInput;
