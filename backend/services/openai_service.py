@@ -107,8 +107,7 @@ async def generate_voice_response(
     """
     try:
         # Generate unique filename for audio
-        audio_filename = f"static/audio_{session_id}_{uuid.uuid4().hex}.mp3"
-        os.makedirs("static", exist_ok=True)
+        audio_filename = f"backend/static/audio_{session_id}_{uuid.uuid4().hex}.mp3"
 
         # Generate speech using OpenAI TTS
         response = await client.audio.speech.create(

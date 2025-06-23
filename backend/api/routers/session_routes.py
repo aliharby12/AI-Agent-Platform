@@ -190,8 +190,7 @@ async def send_voice_message(
             raise HTTPException(status_code=400, detail="Invalid audio format. Use MP3 or WAV.")
 
         # Save uploaded audio file
-        os.makedirs("uploads", exist_ok=True)
-        audio_filename = f"uploads/audio_{session_id}_{uuid.uuid4().hex}.{audio.filename.split('.')[-1]}"
+        audio_filename = f"backend/uploads/audio_{session_id}_{uuid.uuid4().hex}.{audio.filename.split('.')[-1]}"
         async with aiofiles.open(audio_filename, "wb") as f:
             await f.write(await audio.read())
 
@@ -218,7 +217,7 @@ async def send_voice_message(
         # Generate voice response
         try:
             audio_filename = await generate_voice_response(client, agent_response_content, session_id)
-            audio_url = f"/static/{audio_filename.split('/')[-1]}"
+            audio_url = f"backend/static/{audio_filename.split('/')[-1]}"
         except Exception as e:
             logger.error(f"Voice generation failed for session {session_id}: {e}")
             # Return text response even if voice generation fails
