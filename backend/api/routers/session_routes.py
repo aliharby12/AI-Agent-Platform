@@ -209,19 +209,21 @@ async def send_voice_message(
 
         # Generate text response
         agent_response_content = await generate_chat_response(client, db, session_id, user_message_text)
-        agent_message = Message(session_id=session_id, content=agent_response_content, is_user=False)
-        db.add(agent_message)
-        await db.commit()
-        await db.refresh(agent_message)
 
         # Generate voice response
         try:
             audio_filename = await generate_voice_response(client, agent_response_content, session_id)
-            audio_url = f"backend/static/{audio_filename.split('/')[-1]}"
+            audio_url = f"/static/{audio_filename.split('/')[-1]}"
         except Exception as e:
             logger.error(f"Voice generation failed for session {session_id}: {e}")
             # Return text response even if voice generation fails
             audio_url = None
+
+        # Save agent response message with audio_url
+        agent_message = Message(session_id=session_id, content=agent_response_content, is_user=False, audio_url=audio_url)
+        db.add(agent_message)
+        await db.commit()
+        await db.refresh(agent_message)
 
         return {
             "message": agent_message,

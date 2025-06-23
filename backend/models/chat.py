@@ -21,3 +21,4 @@ class Message(Base):
     is_user = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     session = relationship("ChatSession", back_populates="messages")
+    audio_url = Column(String, nullable=True)
