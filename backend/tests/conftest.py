@@ -3,11 +3,11 @@ import pytest_asyncio
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
-from app.main import app
-from app.utils.database import get_db
-from app.models.base import Base
-from app.models.user import User
-from app.api.dependencies import get_openai_client, hash_password
+from backend.main import app
+from backend.utils.database import get_db
+from backend.models.base import Base
+from backend.models.user import User
+from backend.api.dependencies import get_openai_client, hash_password
 from unittest.mock import AsyncMock, MagicMock
 from datetime import datetime, timezone, timedelta
 from jose import jwt

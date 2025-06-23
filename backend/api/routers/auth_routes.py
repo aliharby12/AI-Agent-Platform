@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.models.user import User
-from app.api.schemas.user import UserCreate, UserResponse, TokenResponse
-from app.api.dependencies import get_db_session, get_current_user, create_access_token, create_refresh_token, verify_password, hash_password, security_scheme
+from backend.models.user import User
+from backend.api.schemas.user import UserCreate, UserResponse, TokenResponse
+from backend.api.dependencies import get_db_session, get_current_user, create_access_token, create_refresh_token, verify_password, hash_password, security_scheme
 from datetime import timedelta
 import os
 from dotenv import load_dotenv

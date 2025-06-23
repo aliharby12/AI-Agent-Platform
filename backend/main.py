@@ -1,11 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routers.agent_routes import router as agent_router
-from app.api.routers.session_routes import router as session_router
-from app.api.routers.auth_routes import router as auth_router
-from app.utils.database import init_db
+from backend.api.routers.agent_routes import router as agent_router
+from backend.api.routers.session_routes import router as session_router
+from backend.api.routers.auth_routes import router as auth_router
+from backend.utils.database import init_db
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
+import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -42,7 +43,11 @@ app.add_middleware(
 )
 
 # Mount static directory for serving audio files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+else:
+    print(f"Warning: Static directory not found at {static_dir}")
 
 app.include_router(agent_router)
 app.include_router(session_router)

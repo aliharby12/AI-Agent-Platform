@@ -2,11 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from unittest.mock import patch, MagicMock, AsyncMock
-from app.models.chat import ChatSession, Message
-from app.models.agent import Agent
-import tempfile
-import os
+from backend.models.chat import ChatSession, Message
 
 @pytest.mark.asyncio
 async def test_create_session_success(client: TestClient, access_token: str, db_session: AsyncSession):

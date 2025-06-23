@@ -77,7 +77,3 @@ docs/
 
 # Node modules (if any)
 node_modules/
-
-# Uploads and static files (will be in volumes)
-uploads/
-static/

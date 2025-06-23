@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.models.user import User
+from backend.models.user import User
 from jose import jwt
 import os
 from datetime import datetime, timezone, timedelta

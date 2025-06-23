@@ -1,9 +1,9 @@
-from app.models.user import User
+from backend.models.user import User
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.agent import Agent
-from app.api.schemas import AgentCreate, AgentUpdate, AgentResponse
-from app.api.dependencies import get_current_user, get_db_session, security_scheme
+from backend.models.agent import Agent
+from backend.api.schemas import AgentCreate, AgentUpdate, AgentResponse
+from backend.api.dependencies import get_current_user, get_db_session, security_scheme
 from sqlalchemy.future import select
 from typing import List
 

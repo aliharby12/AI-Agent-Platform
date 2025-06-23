@@ -1,7 +1,7 @@
 import os
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
-from app.models.base import Base
+from backend.models.base import Base
 
 # Get database configuration from environment variables
 DB_HOST = os.getenv("DB_HOST", "localhost")

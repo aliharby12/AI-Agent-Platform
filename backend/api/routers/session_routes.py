@@ -1,13 +1,13 @@
 from typing import List, Optional
-from app.api.schemas.chat import MessageCreate, MessageResponse, MessageResponseWithAgent, VoiceResponse
-from app.services.openai_service import generate_chat_response, generate_voice_response, transcribe_audio
+from backend.api.schemas.chat import MessageCreate, MessageResponse, MessageResponseWithAgent, VoiceResponse
+from backend.services.openai_service import generate_chat_response, generate_voice_response, transcribe_audio
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.agent import Agent
-from app.models.chat import ChatSession, Message
-from app.models.user import User
-from app.api.schemas import ChatSessionCreate, ChatSessionResponse
-from app.api.dependencies import get_db_session, get_openai_client, get_current_user, security_scheme
+from backend.models.agent import Agent
+from backend.models.chat import ChatSession, Message
+from backend.models.user import User
+from backend.api.schemas import ChatSessionCreate, ChatSessionResponse
+from backend.api.dependencies import get_db_session, get_openai_client, get_current_user, security_scheme
 from sqlalchemy.future import select
 from openai import AsyncOpenAI
 import aiofiles

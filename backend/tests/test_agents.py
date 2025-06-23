@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.models.agent import Agent
+from backend.models.agent import Agent
 
 @pytest.mark.asyncio
 async def test_create_agent(client: TestClient, access_token: str):
