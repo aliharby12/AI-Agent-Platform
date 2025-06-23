@@ -26,7 +26,26 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ session, messages, loading }) =
             maxWidth: 400,
             marginBottom: 4
           }}>
-            {msg.content}
+            {msg?.audio_url && !msg?.is_user ? (
+              <div>
+                <audio
+                  controls
+                  style={{ width: '100%', marginBottom: 8 }}
+                  onError={() => console.error('Failed to load audio')}
+                  aria-label="Message audio"
+                >
+                  <source src={`http://localhost:8000${msg.audio_url}`} />
+                  Your browser does not support the audio element.
+                </audio>
+                {msg.content && (
+                  <div style={{ fontSize: '0.9em', opacity: 0.8 }}>
+                    {msg.content}
+                  </div>
+                )}
+              </div>
+            ) : (
+              msg?.content || ''
+            )}
           </div>
           <div style={{ fontSize: 12, color: '#888', textAlign: msg.is_user ? 'right' : 'left' }}>
             {new Date(msg.created_at).toLocaleTimeString()}

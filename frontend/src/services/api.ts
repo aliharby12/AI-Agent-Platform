@@ -163,6 +163,7 @@ export interface Message {
   is_user: boolean;
   created_at: string;
   agent_name?: string;
+  audio_url?: string;
 }
 
 // Session API functions

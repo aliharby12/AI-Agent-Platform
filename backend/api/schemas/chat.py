@@ -20,6 +20,7 @@ class MessageResponse(BaseModel):
     content: str
     is_user: bool
     created_at: datetime
+    audio_url: str | None = None
 
     model_config = {"from_attributes": True}
 
