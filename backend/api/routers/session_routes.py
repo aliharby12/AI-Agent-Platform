@@ -166,17 +166,17 @@ from sqlalchemy import select
 @router.post("/{session_id}/voice", response_model=VoiceResponse)
 async def send_voice_message(
     session_id: int,
-    audio: UploadFile = File(...),
+    audio: bytes = File(...),
     db: AsyncSession = Depends(get_db_session),
     client: AsyncOpenAI = Depends(get_openai_client),
     current_user: User = Depends(get_current_user),
     token: str = Depends(security_scheme)
 ):
     """
-    Send a voice message to a chat session and receive a response from the agent.
+    Send a voice message (as binary) to a chat session and receive a response from the agent.
     Args:
         session_id (int): The ID of the chat session
-        audio (UploadFile): The audio file to transcribe
+        audio (bytes): The audio file content as binary
         db (AsyncSession): Database session dependency
         client (AsyncOpenAI): OpenAI client dependency
         current_user (User): Current authenticated user
@@ -193,27 +193,22 @@ async def send_voice_message(
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
 
-        # Validate audio file type
-        if audio.content_type not in ["audio/mpeg", "audio/wav", "audio/mp3"]:
-            raise HTTPException(status_code=400, detail="Invalid audio format. Use MP3 or WAV.")
-
         # Create static directory if it doesn't exist
         static_dir = Path("backend/static")
-        
+
         # Generate unique filename with single UUID
         unique_id = uuid.uuid4().hex
         audio_filename = f"audio_{session_id}_{unique_id}.mp3"
         user_audio_filepath = static_dir / audio_filename
-        
+
         # Save uploaded audio file for user message
         try:
             async with aiofiles.open(user_audio_filepath, "wb") as f:
-                content = await audio.read()
-                await f.write(content)
+                await f.write(audio)
         except Exception as e:
             logger.error(f"Failed to save audio file {user_audio_filepath}: {e}")
             raise HTTPException(status_code=400, detail="Failed to save audio file")
-        
+
         # Create URL for user audio file
         user_audio_url = f"/static/{user_audio_filepath.name}"
 
@@ -248,7 +243,6 @@ async def send_voice_message(
         try:
             agent_audio_filename = await generate_voice_response(client, agent_response_content, session_id)
             if agent_audio_filename:
-                # Extract just the filename from the path
                 filename_only = Path(agent_audio_filename).name
                 agent_audio_url = f"/static/{filename_only}"
         except Exception as e:
@@ -271,13 +265,13 @@ async def send_voice_message(
             "agent_message": agent_message,
             "agent_audio_url": agent_audio_url
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
         await db.rollback()
         logger.error(f"Error processing voice message for session {session_id}: {e}")
-        raise HTTPException(status_code=500, detail="Failed to process voice message. Please try again.")
+        raise HTTPException(status_code=400, detail="Failed to process voice message. Please try again.")
 
 @router.delete("/{session_id}", status_code=204)
 async def delete_session(
