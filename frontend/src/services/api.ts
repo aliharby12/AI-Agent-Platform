@@ -193,7 +193,7 @@ export const sessionApi = {
   },
 
   // Send a voice message to a session
-  sendVoiceMessage: async (session_id: number, audioFile: File, extension: string): Promise<Message> => {
+  sendVoiceMessage: async (session_id: number, audioFile: File, extension: string): Promise<{user_message: Message, agent_message: Message}> => {
     if (!audioFile || audioFile.size === 0) {
       throw new Error('No audio file to send');
     }

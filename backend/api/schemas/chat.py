@@ -28,5 +28,6 @@ class MessageResponseWithAgent(MessageResponse):
     agent_name: str
 
 class VoiceResponse(BaseModel):
-    message: MessageResponse
-    audio_url: str
+    user_message: MessageResponse
+    agent_message: MessageResponse
+    agent_audio_url: str | None = None

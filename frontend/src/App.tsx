@@ -156,16 +156,7 @@ const handleSendVoiceMessage = async (audioBlob: Blob) => {
     const response = await sessionApi.sendVoiceMessage(selectedSession.id, audioFile, extension);
     
     // Add both user voice message and AI response to the chat
-    setMessages(prev => [...prev, 
-      { 
-        content: '[Voice Message]', 
-        is_user: true, 
-        session_id: selectedSession.id, 
-        id: Date.now(), 
-        created_at: new Date().toISOString() 
-      }, 
-      response
-    ]);
+    setMessages(prev => [...prev, response.user_message, response.agent_message]);
     
   } catch (error: any) {
     console.error('Error sending voice message:', error);

@@ -53,35 +53,32 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ token, agentId }) => {
     if (!selectedSession) return;
     setLoading(true);
 
-    // Convert Blob to File for backend compatibility
-    const audioFile = new File([audioBlob], 'recording.webm', { type: audioBlob.type || 'audio/webm' });
-    const formData = new FormData();
-    formData.append('audio', audioFile);
-
     try {
-      const response = await fetch(`/sessions/${selectedSession.id}/voice`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
+      // Determine file extension based on MIME type
+      let extension = 'webm'; // default
+      let mimeType = audioBlob.type;
+      
+      if (mimeType.includes('wav')) {
+        extension = 'wav';
+      } else if (mimeType.includes('mp3') || mimeType.includes('mpeg')) {
+        extension = 'mp3';
+      } else if (mimeType.includes('ogg')) {
+        extension = 'ogg';
+      } else if (mimeType.includes('webm')) {
+        extension = 'webm';
+      }
+
+      // Create file with proper extension and MIME type
+      const audioFile = new File([audioBlob], `voice-message.${extension}`, { 
+        type: audioBlob.type || 'audio/webm'
       });
 
-      if (!response.ok) throw new Error('Voice message failed');
-      const data = await response.json();
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          content: data.message.content,
-          is_user: false,
-          session_id: selectedSession.id,
-          id: data.message.id,
-          created_at: data.message.created_at,
-          audio_url: data.audio_url || data.message.audio_url,
-        },
-      ]);
-    } catch (err) {
+      const response = await sessionApi.sendVoiceMessage(selectedSession.id, audioFile, extension);
+      
+      // Add both user voice message and AI response to the chat
+      setMessages(prev => [...prev, response.user_message, response.agent_message]);
+    } catch (error: any) {
+      console.error('Error sending voice message:', error);
       alert('Failed to send voice message');
     } finally {
       setLoading(false);
