@@ -31,20 +31,50 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ session, messages, loading }) =
         </div>
       )}
       {messages.map((msg) => (
-        <div key={msg.id} style={{ marginBottom: 16, display: msg.is_user ? 'flex' : undefined, flexDirection: msg.is_user ? 'row-reverse' : undefined }}>
-          <div>
-            <div style={{
-              background: msg.is_user ? '#2d2dff' : '#e0e0e0',
-              color: msg.is_user ? '#fff' : '#000',
-              borderRadius: 8,
-              padding: 12,
-              maxWidth: 400,
-              marginBottom: 4
-            }}>
+        <div
+          key={msg.id}
+          style={{
+            marginBottom: 16,
+            display: 'flex',
+            flexDirection: msg.is_user ? 'row-reverse' : 'row',
+            alignItems: 'flex-end',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: msg.is_user ? 'flex-end' : 'flex-start',
+              width: '100%',
+            }}
+          >
+            <div
+              style={{
+                background: msg.is_user ? '#2d2dff' : '#e0e0e0',
+                color: msg.is_user ? '#fff' : '#000',
+                borderRadius: 12,
+                padding: 12,
+                minWidth: 220,
+                maxWidth: 400,
+                marginBottom: 4,
+                marginRight: msg.is_user ? 16 : 0,
+                marginLeft: !msg.is_user ? 16 : 0,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: msg.is_user ? 'flex-end' : 'flex-start',
+                alignSelf: msg.is_user ? 'flex-end' : 'flex-start',
+              }}
+            >
               {msg?.audio_url ? (
                 <audio
                   controls
-                  style={{ width: '100%', marginBottom: 8 }}
+                  style={{
+                    width: '100%',
+                    marginBottom: 8,
+                    background: 'transparent',
+                    outline: 'none',
+                  }}
                   onError={(e) => {
                     console.error('Failed to load audio:', {
                       audio_url: msg.audio_url,
@@ -67,7 +97,16 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ session, messages, loading }) =
                 msg?.content || ''
               )}
             </div>
-            <div style={{ fontSize: 12, color: '#888', textAlign: msg.is_user ? 'right' : 'left' }}>
+            <div
+              style={{
+                fontSize: 12,
+                color: '#888',
+                textAlign: msg.is_user ? 'right' : 'left',
+                width: '100%',
+                marginRight: msg.is_user ? 16 : 0,
+                marginLeft: !msg.is_user ? 16 : 0,
+              }}
+            >
               {new Date(msg.created_at).toLocaleTimeString()}
             </div>
           </div>
