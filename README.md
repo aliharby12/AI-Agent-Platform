@@ -22,8 +22,8 @@ Backend service for an AI Agent Platform, enabling users to create, manage, and 
 Ensure you have the following installed:
 
 - **Docker & Docker Compose** (recommended)
-   - Docker Engine 20.10+
-   - Docker Compose 2.0+
+      - Docker Engine 20.10+
+      - Docker Compose 2.0+
 - **Python 3.11+** (for manual setup)
 - **PostgreSQL 15+** (for manual setup)
 - **OpenAI API Key** (for AI features)
@@ -47,13 +47,6 @@ cd AI-Agent-Platform
 cp .env-example .env
 nano .env
 ```
-
-**Required variables:**
-
-- `OPENAI_API_KEY`
-- `JWT_SECRET_KEY`
-- `DB_PASSWORD`
-- `SECRET_KEY`
 
 ### 3. Build & Run
 
@@ -231,3 +224,4 @@ pytest -v ./tests
 - Review API docs: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
+
