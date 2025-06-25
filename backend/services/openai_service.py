@@ -11,16 +11,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 async def generate_chat_response(
-    client: AsyncOpenAI, db: AsyncSession, session_id: int, user_message: str
+    client: AsyncOpenAI, db: AsyncSession, session_id: int, messages: list
 ) -> str:
     """
-    Generate a chat response using OpenAI API.
+    Generate a chat response using OpenAI API with message history.
     
     Args:
         client (AsyncOpenAI): OpenAI client
         db (AsyncSession): Database session
         session_id (int): Chat session ID
-        user_message (str): User's message
+        messages (list): List of message dicts (history), e.g. [{"role": ..., "content": ...}]
         
     Returns:
         str: Generated response from the agent
@@ -42,13 +42,13 @@ async def generate_chat_response(
         if not agent:
             raise ValueError("Agent not found")
 
+        # Prepend system prompt if not already present
+        chat_messages = messages.copy()
+
         # Call OpenAI API
         response = await client.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": agent.prompt},
-                {"role": "user", "content": user_message},
-            ],
+            messages=chat_messages,
         )
         return response.choices[0].message.content
     except ValueError as e:

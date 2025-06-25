@@ -91,8 +91,29 @@ async def send_message(
         await db.commit()
         await db.refresh(user_message)
 
+        # Get all messages in the session for context
+        result = await db.execute(select(Message).filter(Message.session_id == session_id).order_by(Message.created_at))
+        messages = result.scalars().all()
+        if not messages:
+            raise HTTPException(status_code=404, detail="No messages found in session")
+        
+        # Prepare messages for OpenAI API
+        openai_messages = []
+        for msg in messages:
+            if msg.is_user:
+                openai_messages.append({"role": "user", "content": msg.content})
+            else:
+                openai_messages.append({"role": "assistant", "content": msg.content})
+        
+        # Add the new user message to the context
+        openai_messages.append({"role": "user", "content": message.content})
+
+        logger.info(f"Sending message to OpenAI for session {session_id}: {openai_messages}")
+
         # Generate and save agent response
-        agent_response_content = await generate_chat_response(client, db, session_id, message.content)
+        agent_response_content = await generate_chat_response(client, db, session_id, openai_messages)
+
+        # Save agent response message
         agent_message = Message(session_id=session_id, content=agent_response_content, is_user=False)
         db.add(agent_message)
         await db.commit()
@@ -217,7 +238,6 @@ async def send_voice_message(
             user_message_text = await transcribe_audio(client, str(user_audio_filepath))
         except Exception as e:
             logger.error(f"Transcription failed for session {session_id}: {e}")
-            # Clean up the saved file if transcription fails
             try:
                 os.unlink(user_audio_filepath)
             except:
@@ -235,8 +255,27 @@ async def send_voice_message(
         await db.commit()
         await db.refresh(user_message)
 
+        # Get all messages in the session for context
+        result = await db.execute(select(Message).filter(Message.session_id == session_id).order_by(Message.created_at))
+        messages = result.scalars().all()
+        if not messages:
+            raise HTTPException(status_code=404, detail="No messages found in session")
+
+        # Prepare messages for OpenAI API
+        openai_messages = []
+        for msg in messages:
+            if msg.is_user:
+                openai_messages.append({"role": "user", "content": msg.content})
+            else:
+                openai_messages.append({"role": "assistant", "content": msg.content})
+
+        # Add the new user message to the context
+        openai_messages.append({"role": "user", "content": user_message_text})
+
+        logger.info(f"Sending voice message to OpenAI for session {session_id}: {openai_messages}")
+
         # Generate text response
-        agent_response_content = await generate_chat_response(client, db, session_id, user_message_text)
+        agent_response_content = await generate_chat_response(client, db, session_id, openai_messages)
 
         # Generate voice response
         agent_audio_url = None
@@ -247,7 +286,6 @@ async def send_voice_message(
                 agent_audio_url = f"/static/{filename_only}"
         except Exception as e:
             logger.error(f"Voice generation failed for session {session_id}: {e}")
-            # Continue without agent audio
 
         # Save agent response message with audio_url
         agent_message = Message(

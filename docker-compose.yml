@@ -9,6 +9,8 @@ services:
       - "8000:8000"  # Remove if using Nginx
     env_file:
       - .env
+    volumes:
+      - ./backend:/app/backend
     restart: unless-stopped
     depends_on:
       - db
