@@ -32,7 +32,7 @@ Ensure you have the following installed:
 
 ## Quick Start (Docker)
 
-The easiest way to run the project is with Docker Compose.
+The easiest way to run the project is with Docker Compose and Nginx as a reverse proxy.
 
 ### 1. Clone the Repository
 
@@ -48,20 +48,26 @@ cp .env-example .env
 nano .env
 ```
 
-### 3. Build & Run
+### 3. Build & Run (with Nginx and scaling)
 
 ```bash
-sudo docker-compose up --build
+# Run with Nginx as the main entry point (port 80)
+sudo docker-compose up --build --scale backend=3 --scale frontend=1
 # Or detached:
-sudo docker-compose up --build -d
+sudo docker-compose up --build -d --scale backend=3 --scale frontend=1
 ```
+
+- You can adjust the number of backend/frontend containers as needed.
+- Nginx will load balance API requests to all backend containers.
 
 ### 4. Access Services
 
-- Backend API: [http://localhost:8000](http://localhost:8000)
-- API Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
-- Frontend: [http://localhost:3000](http://localhost:3000)
-- Database: `localhost:5432`
+- **Main entry point (Nginx):** [http://localhost](http://localhost)
+    - **Backend API:** [http://localhost/api/](http://localhost/api/)
+    - **Frontend:** [http://localhost](http://localhost)
+- **Database:** `localhost:5432`
+
+> **Note:** Do not access the backend directly on port 8000; use Nginx on port 80 for all API and frontend requests.
 
 ---
 
@@ -144,12 +150,12 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 ## Running the Application
 
-### With Docker Compose
+### With Docker Compose (Nginx as entry point)
 
 ```bash
-sudo docker-compose up --build
+sudo docker-compose up --build --scale backend=3 --scale frontend=1
 # Detached:
-sudo docker-compose up --build -d
+sudo docker-compose up --build -d --scale backend=3 --scale frontend=1
 # Logs:
 sudo docker-compose logs -f
 # Stop:
@@ -157,6 +163,9 @@ sudo docker-compose down
 # Remove volumes:
 sudo docker-compose down -v
 ```
+
+- Access everything via [http://localhost](http://localhost)
+- Nginx will route `/api/` to the backend and all other requests to the frontend.
 
 ### With Python
 
@@ -182,9 +191,9 @@ pytest -v ./tests
 
 ## API Documentation
 
-- **Swagger UI:** [http://localhost:8000/docs](http://localhost:8000/docs)
-- **ReDoc:** [http://localhost:8000/redoc](http://localhost:8000/redoc)
-- **OpenAPI Schema:** [http://localhost:8000/openapi.json](http://localhost:8000/openapi.json)
+- **Swagger UI:** [http://localhost/api/docs](http://localhost/api/docs)
+- **ReDoc:** [http://localhost/api/redoc](http://localhost/api/redoc)
+- **OpenAPI Schema:** [http://localhost/api/openapi.json](http://localhost/api/openapi.json)
 
 ---
 
@@ -192,9 +201,9 @@ pytest -v ./tests
 
 ### Common Issues
 
-1. **Port 8000 in use**
+1. **Port 80 in use**
       ```bash
-      sudo lsof -i :8000
+      sudo lsof -i :80
       sudo kill -9 <PID>
       ```
 
@@ -221,7 +230,7 @@ pytest -v ./tests
 - Check logs: `sudo docker-compose logs -f`
 - Verify environment variables
 - Ensure prerequisites are installed
-- Review API docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+- Review API docs: [http://localhost/api/docs](http://localhost/api/docs)
 
 ---
 

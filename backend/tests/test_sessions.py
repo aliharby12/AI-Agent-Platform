@@ -8,14 +8,14 @@ from backend.models.chat import ChatSession, Message
 async def test_create_session_success(client: TestClient, access_token: str, db_session: AsyncSession):
     # Create agent first
     agent_response = client.post(
-        "/agents/",
+        "/api/agents/",
         json={"name": "TestAgent", "prompt": "You are a helpful assistant"},
         headers={"Authorization": f"Bearer {access_token}"}
     )
     agent_id = agent_response.json()["id"]
     
     response = client.post(
-        "/sessions/",
+        "/api/sessions/",
         json={"agent_id": agent_id},
         headers={"Authorization": f"Bearer {access_token}"}
     )
@@ -34,7 +34,7 @@ async def test_create_session_success(client: TestClient, access_token: str, db_
 @pytest.mark.asyncio
 async def test_create_session_nonexistent_agent(client: TestClient, access_token: str):
     response = client.post(
-        "/sessions/",
+        "/api/sessions/",
         json={"agent_id": 999},
         headers={"Authorization": f"Bearer {access_token}"}
     )
@@ -44,7 +44,7 @@ async def test_create_session_nonexistent_agent(client: TestClient, access_token
 @pytest.mark.asyncio
 async def test_create_session_missing_agent_id(client: TestClient, access_token: str):
     response = client.post(
-        "/sessions/",
+        "/api/sessions/",
         json={},
         headers={"Authorization": f"Bearer {access_token}"}
     )
@@ -53,7 +53,7 @@ async def test_create_session_missing_agent_id(client: TestClient, access_token:
 @pytest.mark.asyncio
 async def test_create_session_invalid_agent_id(client: TestClient, access_token: str):
     response = client.post(
-        "/sessions/",
+        "/api/sessions/",
         json={"agent_id": "invalid"},
         headers={"Authorization": f"Bearer {access_token}"}
     )
@@ -61,21 +61,21 @@ async def test_create_session_invalid_agent_id(client: TestClient, access_token:
 
 @pytest.mark.asyncio
 async def test_create_session_unauthorized(client: TestClient):
-    response = client.post("/sessions/", json={"agent_id": 1})
+    response = client.post("/api/sessions/", json={"agent_id": 1})
     assert response.status_code == 401
 
 @pytest.mark.asyncio
 async def test_send_message_success(client: TestClient, access_token: str, db_session: AsyncSession):
     # Setup agent and session
     agent_response = client.post(
-        "/agents/",
+        "/api/agents/",
         json={"name": "TestAgent", "prompt": "You are a helpful assistant"},
         headers={"Authorization": f"Bearer {access_token}"}
     )
     agent_id = agent_response.json()["id"]
     
     session_response = client.post(
-        "/sessions/",
+        "/api/sessions/",
         json={"agent_id": agent_id},
         headers={"Authorization": f"Bearer {access_token}"}
     )
@@ -83,7 +83,7 @@ async def test_send_message_success(client: TestClient, access_token: str, db_se
     
     # Send message
     response = client.post(
-        f"/sessions/{session_id}/messages",
+        f"/api/sessions/{session_id}/messages",
         json={"content": "Hello, how are you?"},
         headers={"Authorization": f"Bearer {access_token}"}
     )

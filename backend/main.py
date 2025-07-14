@@ -30,7 +30,10 @@ app = FastAPI(
             "name": "Sessions",
             "description": "Operations for chat sessions"
         }
-    ]
+    ],
+    openapi_url="/api/openapi.json",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc"
 )
 
 # Add CORS middleware
@@ -49,9 +52,9 @@ if os.path.exists(static_dir):
 else:
     print(f"Warning: Static directory not found at {static_dir}")
 
-app.include_router(agent_router)
-app.include_router(session_router)
-app.include_router(auth_router)
+app.include_router(agent_router, prefix="/api")
+app.include_router(session_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
 
 @app.get("/")
 async def root():

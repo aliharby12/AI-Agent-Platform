@@ -9,7 +9,7 @@ from datetime import datetime, timezone, timedelta
 
 @pytest.mark.asyncio
 async def test_register_user_success(client: TestClient, db_session: AsyncSession):
-    response = client.post("/auth/register", json={"username": "testuser", "password": "securepassword"})
+    response = client.post("/api/auth/register", json={"username": "testuser", "password": "securepassword"})
     assert response.status_code == 200
     data = response.json()
     assert data["username"] == "testuser"
@@ -28,23 +28,23 @@ async def test_register_user_success(client: TestClient, db_session: AsyncSessio
 @pytest.mark.asyncio
 async def test_register_user_short_password(client: TestClient):
     """Test registration with very short password"""
-    response = client.post("/auth/register", json={"username": "testuser", "password": "123"})
+    response = client.post("/api/auth/register", json={"username": "testuser", "password": "123"})
     # Note: Your current implementation doesn't validate password length
     # This test documents current behavior - you might want to add validation
     assert response.status_code == 200
 
 @pytest.mark.asyncio
 async def test_register_duplicate_user_exact_match(client: TestClient):
-    client.post("/auth/register", json={"username": "testuser", "password": "securepassword"})
-    response = client.post("/auth/register", json={"username": "testuser", "password": "otherpassword"})
+    client.post("/api/auth/register", json={"username": "testuser", "password": "securepassword"})
+    response = client.post("/api/auth/register", json={"username": "testuser", "password": "otherpassword"})
     assert response.status_code == 400
     assert response.json() == {"detail": "Username already exists"}
 
 @pytest.mark.asyncio
 async def test_register_user_case_sensitivity(client: TestClient):
     """Test if usernames are case-sensitive"""
-    client.post("/auth/register", json={"username": "testuser", "password": "securepassword"})
-    response = client.post("/auth/register", json={"username": "TestUser", "password": "otherpassword"})
+    client.post("/api/auth/register", json={"username": "testuser", "password": "securepassword"})
+    response = client.post("/api/auth/register", json={"username": "TestUser", "password": "otherpassword"})
     # This documents current behavior - case sensitive usernames
     assert response.status_code == 200
 
@@ -52,15 +52,15 @@ async def test_register_user_case_sensitivity(client: TestClient):
 async def test_register_user_special_characters(client: TestClient):
     """Test registration with special characters in username"""
     special_username = "test_user@domain.com"
-    response = client.post("/auth/register", json={"username": special_username, "password": "securepassword"})
+    response = client.post("/api/auth/register", json={"username": special_username, "password": "securepassword"})
     assert response.status_code == 200
     data = response.json()
     assert data["username"] == special_username
 
 @pytest.mark.asyncio
 async def test_login_user_success(client: TestClient):
-    client.post("/auth/register", json={"username": "testuser", "password": "securepassword"})
-    response = client.post("/auth/login", json={"username": "testuser", "password": "securepassword"})
+    client.post("/api/auth/register", json={"username": "testuser", "password": "securepassword"})
+    response = client.post("/api/auth/login", json={"username": "testuser", "password": "securepassword"})
     assert response.status_code == 200
     data = response.json()
     assert "access_token" in data
@@ -81,37 +81,37 @@ async def test_login_user_success(client: TestClient):
 
 @pytest.mark.asyncio
 async def test_login_user_wrong_password(client: TestClient):
-    client.post("/auth/register", json={"username": "testuser", "password": "securepassword"})
-    response = client.post("/auth/login", json={"username": "testuser", "password": "wrongpassword"})
+    client.post("/api/auth/register", json={"username": "testuser", "password": "securepassword"})
+    response = client.post("/api/auth/login", json={"username": "testuser", "password": "wrongpassword"})
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid credentials"}
 
 @pytest.mark.asyncio
 async def test_login_user_nonexistent(client: TestClient):
-    response = client.post("/auth/login", json={"username": "nonexistent", "password": "securepassword"})
+    response = client.post("/api/auth/login", json={"username": "nonexistent", "password": "securepassword"})
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid credentials"}
 
 @pytest.mark.asyncio
 async def test_login_user_case_sensitivity(client: TestClient):
     """Test login with different case username"""
-    client.post("/auth/register", json={"username": "testuser", "password": "securepassword"})
-    response = client.post("/auth/login", json={"username": "TestUser", "password": "securepassword"})
+    client.post("/api/auth/register", json={"username": "testuser", "password": "securepassword"})
+    response = client.post("/api/auth/login", json={"username": "TestUser", "password": "securepassword"})
     assert response.status_code == 401  # Case sensitive
 
 @pytest.mark.asyncio
 async def test_login_missing_username(client: TestClient):
-    response = client.post("/auth/login", json={"password": "securepassword"})
+    response = client.post("/api/auth/login", json={"password": "securepassword"})
     assert response.status_code == 422
 
 @pytest.mark.asyncio
 async def test_refresh_token_invalid_token(client: TestClient):
-    response = client.post("/auth/refresh", headers={"Authorization": "Bearer invalid_token"})
+    response = client.post("/api/auth/refresh", headers={"Authorization": "Bearer invalid_token"})
     assert response.status_code == 401
 
 @pytest.mark.asyncio
 async def test_refresh_token_no_token(client: TestClient):
-    response = client.post("/auth/refresh")
+    response = client.post("/api/auth/refresh")
     assert response.status_code == 401
 
 @pytest.mark.asyncio
@@ -127,21 +127,21 @@ async def test_refresh_token_expired(client: TestClient):
     }
     expired_token = jwt.encode(expired_token_data, secret_key, algorithm=algorithm)
     
-    response = client.post("/auth/refresh", headers={"Authorization": f"Bearer {expired_token}"})
+    response = client.post("/api/auth/refresh", headers={"Authorization": f"Bearer {expired_token}"})
     assert response.status_code == 401
 
 @pytest.mark.asyncio
 async def test_refresh_token_malformed(client: TestClient):
     """Test refresh with malformed token"""
-    response = client.post("/auth/refresh", headers={"Authorization": "Bearer not.a.jwt"})
+    response = client.post("/api/auth/refresh", headers={"Authorization": "Bearer not.a.jwt"})
     assert response.status_code == 401
 
 @pytest.mark.asyncio
 async def test_refresh_token_user_not_found(client: TestClient, db_session: AsyncSession):
     """Test refresh with valid token but user deleted from database"""
     # Register user and get token
-    client.post("/auth/register", json={"username": "testuser", "password": "securepassword"})
-    login_response = client.post("/auth/login", json={"username": "testuser", "password": "securepassword"})
+    client.post("/api/auth/register", json={"username": "testuser", "password": "securepassword"})
+    login_response = client.post("/api/auth/login", json={"username": "testuser", "password": "securepassword"})
     access_token = login_response.json()["access_token"]
     
     # Delete user from database
@@ -152,15 +152,15 @@ async def test_refresh_token_user_not_found(client: TestClient, db_session: Asyn
         await db_session.commit()
     
     # Try to refresh - should fail
-    response = client.post("/auth/refresh", headers={"Authorization": f"Bearer {access_token}"})
+    response = client.post("/api/auth/refresh", headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 401
 
 @pytest.mark.asyncio
 async def test_password_hashing_security(client: TestClient, db_session: AsyncSession):
     """Test that passwords are properly hashed and salted"""
     # Register two users with same password
-    client.post("/auth/register", json={"username": "user1", "password": "samepassword"})
-    client.post("/auth/register", json={"username": "user2", "password": "samepassword"})
+    client.post("/api/auth/register", json={"username": "user1", "password": "samepassword"})
+    client.post("/api/auth/register", json={"username": "user2", "password": "samepassword"})
     
     # Get both users from database
     result1 = await db_session.execute(select(User).where(User.username == "user1"))

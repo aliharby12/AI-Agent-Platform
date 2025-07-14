@@ -7,7 +7,7 @@ from backend.models.agent import Agent
 @pytest.mark.asyncio
 async def test_create_agent(client: TestClient, access_token: str):
     response = client.post(
-        "/agents/",
+        "/api/agents/",
         json={"name": "TestAgent", "prompt": "You are a helpful assistant"},
         headers={"Authorization": f"Bearer {access_token}"}
     )
@@ -21,7 +21,7 @@ async def test_create_agent(client: TestClient, access_token: str):
 @pytest.mark.asyncio
 async def test_create_agent_missing_fields(client: TestClient, access_token: str):
     response = client.post(
-        "/agents/",
+        "/api/agents/",
         json={"name": "TestAgent"},  # Missing prompt
         headers={"Authorization": f"Bearer {access_token}"}
     )
@@ -29,13 +29,13 @@ async def test_create_agent_missing_fields(client: TestClient, access_token: str
 
 @pytest.mark.asyncio
 async def test_create_agent_unauthorized(client: TestClient):
-    response = client.post("/agents/", json={"name": "TestAgent", "prompt": "You are a helpful assistant"})
+    response = client.post("/api/agents/", json={"name": "TestAgent", "prompt": "You are a helpful assistant"})
     assert response.status_code == 401
 
 @pytest.mark.asyncio
 async def test_create_agent_invalid_token(client: TestClient):
     response = client.post(
-        "/agents/",
+        "/api/agents/",
         json={"name": "TestAgent", "prompt": "You are a helpful assistant"},
         headers={"Authorization": "Bearer invalid_token"}
     )
@@ -43,7 +43,7 @@ async def test_create_agent_invalid_token(client: TestClient):
 
 @pytest.mark.asyncio
 async def test_list_agents_empty(client: TestClient, access_token: str):
-    response = client.get("/agents/", headers={"Authorization": f"Bearer {access_token}"})
+    response = client.get("/api/agents/", headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 0
@@ -59,12 +59,12 @@ async def test_list_agents_multiple(client: TestClient, access_token: str):
     
     for agent_data in agents_data:
         client.post(
-            "/agents/",
+            "/api/agents/",
             json=agent_data,
             headers={"Authorization": f"Bearer {access_token}"}
         )
     
-    response = client.get("/agents/", headers={"Authorization": f"Bearer {access_token}"})
+    response = client.get("/api/agents/", headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 3
@@ -78,13 +78,13 @@ async def test_list_agents_multiple(client: TestClient, access_token: str):
 @pytest.mark.asyncio
 async def test_get_agent_exists(client: TestClient, access_token: str):
     create_response = client.post(
-        "/agents/",
+        "/api/agents/",
         json={"name": "TestAgent", "prompt": "You are a helpful assistant"},
         headers={"Authorization": f"Bearer {access_token}"}
     )
     agent_id = create_response.json()["id"]
     
-    response = client.get(f"/agents/{agent_id}", headers={"Authorization": f"Bearer {access_token}"})
+    response = client.get(f"/api/agents/{agent_id}", headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == agent_id
@@ -93,26 +93,26 @@ async def test_get_agent_exists(client: TestClient, access_token: str):
 
 @pytest.mark.asyncio
 async def test_get_agent_not_found(client: TestClient, access_token: str):
-    response = client.get("/agents/999", headers={"Authorization": f"Bearer {access_token}"})
+    response = client.get("/api/agents/999", headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 404
     assert response.json() == {"detail": "Agent not found"}
 
 @pytest.mark.asyncio
 async def test_get_agent_invalid_id(client: TestClient, access_token: str):
-    response = client.get("/agents/invalid", headers={"Authorization": f"Bearer {access_token}"})
+    response = client.get("/api/agents/invalid", headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 422  # Validation error for invalid ID format
 
 @pytest.mark.asyncio
 async def test_update_agent_name_only(client: TestClient, access_token: str):
     create_response = client.post(
-        "/agents/",
+        "/api/agents/",
         json={"name": "TestAgent", "prompt": "You are a helpful assistant"},
         headers={"Authorization": f"Bearer {access_token}"}
     )
     agent_id = create_response.json()["id"]
     
     response = client.patch(
-        f"/agents/{agent_id}",
+        f"/api/agents/{agent_id}",
         json={"name": "UpdatedAgent"},
         headers={"Authorization": f"Bearer {access_token}"}
     )
@@ -124,14 +124,14 @@ async def test_update_agent_name_only(client: TestClient, access_token: str):
 @pytest.mark.asyncio
 async def test_update_agent_prompt_only(client: TestClient, access_token: str):
     create_response = client.post(
-        "/agents/",
+        "/api/agents/",
         json={"name": "TestAgent", "prompt": "You are a helpful assistant"},
         headers={"Authorization": f"Bearer {access_token}"}
     )
     agent_id = create_response.json()["id"]
     
     response = client.patch(
-        f"/agents/{agent_id}",
+        f"/api/agents/{agent_id}",
         json={"prompt": "You are an updated assistant"},
         headers={"Authorization": f"Bearer {access_token}"}
     )
@@ -143,14 +143,14 @@ async def test_update_agent_prompt_only(client: TestClient, access_token: str):
 @pytest.mark.asyncio
 async def test_update_agent_both_fields(client: TestClient, access_token: str):
     create_response = client.post(
-        "/agents/",
+        "/api/agents/",
         json={"name": "TestAgent", "prompt": "You are a helpful assistant"},
         headers={"Authorization": f"Bearer {access_token}"}
     )
     agent_id = create_response.json()["id"]
     
     response = client.patch(
-        f"/agents/{agent_id}",
+        f"/api/agents/{agent_id}",
         json={"name": "UpdatedAgent", "prompt": "You are an updated assistant"},
         headers={"Authorization": f"Bearer {access_token}"}
     )
@@ -162,14 +162,14 @@ async def test_update_agent_both_fields(client: TestClient, access_token: str):
 @pytest.mark.asyncio
 async def test_update_agent_empty_body(client: TestClient, access_token: str):
     create_response = client.post(
-        "/agents/",
+        "/api/agents/",
         json={"name": "TestAgent", "prompt": "You are a helpful assistant"},
         headers={"Authorization": f"Bearer {access_token}"}
     )
     agent_id = create_response.json()["id"]
     
     response = client.patch(
-        f"/agents/{agent_id}",
+        f"/api/agents/{agent_id}",
         json={},
         headers={"Authorization": f"Bearer {access_token}"}
     )
@@ -182,7 +182,7 @@ async def test_update_agent_empty_body(client: TestClient, access_token: str):
 @pytest.mark.asyncio
 async def test_update_agent_not_found(client: TestClient, access_token: str):
     response = client.patch(
-        "/agents/999",
+        "/api/agents/999",
         json={"name": "UpdatedAgent"},
         headers={"Authorization": f"Bearer {access_token}"}
     )
@@ -192,13 +192,13 @@ async def test_update_agent_not_found(client: TestClient, access_token: str):
 @pytest.mark.asyncio
 async def test_delete_agent_exists(client: TestClient, access_token: str, db_session: AsyncSession):
     create_response = client.post(
-        "/agents/",
+        "/api/agents/",
         json={"name": "TestAgent", "prompt": "You are a helpful assistant"},
         headers={"Authorization": f"Bearer {access_token}"}
     )
     agent_id = create_response.json()["id"]
     
-    response = client.delete(f"/agents/{agent_id}", headers={"Authorization": f"Bearer {access_token}"})
+    response = client.delete(f"/api/agents/{agent_id}", headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 200
     
     # Verify the response contains the deleted agent data
@@ -212,7 +212,7 @@ async def test_delete_agent_exists(client: TestClient, access_token: str, db_ses
 
 @pytest.mark.asyncio
 async def test_delete_agent_not_found(client: TestClient, access_token: str):
-    response = client.delete("/agents/999", headers={"Authorization": f"Bearer {access_token}"})
+    response = client.delete("/api/agents/999", headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 404
     assert response.json() == {"detail": "Agent not found"}
 
@@ -220,10 +220,10 @@ async def test_delete_agent_not_found(client: TestClient, access_token: str):
 async def test_agent_endpoints_unauthorized(client: TestClient):
     """Test all agent endpoints without authentication"""
     endpoints = [
-        ("GET", "/agents/"),
-        ("GET", "/agents/1"),
-        ("PATCH", "/agents/1"),
-        ("DELETE", "/agents/1")
+        ("GET", "/api/agents/"),
+        ("GET", "/api/agents/1"),
+        ("PATCH", "/api/agents/1"),
+        ("DELETE", "/api/agents/1")
     ]
     
     for method, endpoint in endpoints:
@@ -243,7 +243,7 @@ async def test_agent_with_long_name_and_prompt(client: TestClient, access_token:
     long_prompt = "B" * 5000
     
     response = client.post(
-        "/agents/",
+        "/api/agents/",
         json={"name": long_name, "prompt": long_prompt},
         headers={"Authorization": f"Bearer {access_token}"}
     )
@@ -259,7 +259,7 @@ async def test_agent_with_special_characters(client: TestClient, access_token: s
     special_prompt = "You are a helpful assistant! Handle these chars: <>\"'&"
     
     response = client.post(
-        "/agents/",
+        "/api/agents/",
         json={"name": special_name, "prompt": special_prompt},
         headers={"Authorization": f"Bearer {access_token}"}
     )
